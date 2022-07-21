@@ -10,6 +10,9 @@ function effect(fn) {
 }
 // 跟踪函数
 function track(target, key) {
+  if (!activeEffect) {
+    return
+  }
   // 当前对象相关的 key 与 副作用函数 映射集合Map
   let depsMap = bucket.get(target)
   if (!depsMap) {
@@ -30,7 +33,7 @@ function trigger(target, key) {
   }
   // 副作用函数集合set
   let effects = depsMap.get(key)
-  if (effect) {
+  if (effects) {
     effects.forEach(effect => {
       effect()
     });
