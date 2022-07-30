@@ -73,7 +73,6 @@ function trigger(target, key) {
       if (effect !== activeEffect) {
         if (effect.options.scheduler) {
           // 用户自定义调度
-          // 4 用户有自定义调度，按用户设置运行effect函数
           effect.options.scheduler(effect);
         } else { // 默认调用
           effect();
@@ -116,25 +115,32 @@ function watch(source, cb) {
     }
     // getter = traverse(source) ERROR
   }
-  // 1 首先注册一个effect，设置懒运行和调度函数，此时并不会运行，我们拿到了effect引用
+  // 为了增加立刻调用，我们把带哦度函数抽离出来
+  function job() {
+    newValue = effectFn()
+    cb(oldValue, newValue)
+    // 细节问题，需要更新oldValue
+    oldValue = newValue
+  }
   const effectFn = effect(getter, {
     lazy: true,
     // 需要记住 scheduler 只有在trigger函数中才会运行 也就是只有set的时候才会运行
-    scheduler(fn) {
-      // trigger 中会运行到这
-      // 5 运行effectFn 此时obj.foo 已经是最新值了
-      newValue = effectFn()
-      console.log(fn === effectFn);
-      // newValue = fn()
-      // 调用回调函数 并传入 oldValue, newValue
-      cb(oldValue, newValue)
-      // 细节问题，需要更新oldValue
-      oldValue = newValue
+    scheduler() {
+      // 暂时模拟不了pre
+      if (options.flush === 'post') {
+        Promise.resolve().then(job)
+      } else {
+        job()
+      }
     }
   })
-  // 2 第一次运行effectFn，拿到oldValue 
-  // 需要注意 直接运行effectFn 不会执行调度函数
-  oldValue = effectFn()
+  if (options.immediate) {
+    job()
+  } else {
+    // 第一次运行effectFn，拿到oldValue 
+    // 需要注意 直接运行effectFn 不会执行调度函数
+    oldValue = effectFn()
+  }
 }
 // watch 辅助函数 递归访问到对象所有的key 用来建立连接
 function traverse(value, seen = new Set()) {
