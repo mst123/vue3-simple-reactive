@@ -106,6 +106,10 @@ const renderer = createRenderer({
         if (!invoker) {
           // 两个赋值
           invoker = el._vel[key] = (e) => {
+            // 解决冒泡问题 P203
+            if (e.timeStamp < invoker.attached) {
+              return
+            }
             if (Array.isArray(invoker.value)) {
               invoker.value.forEach(fn => fn(e))
             } else {
@@ -113,6 +117,8 @@ const renderer = createRenderer({
             }
           }
           invoker.value = nextValue
+          // 存储绑定时间 解决冒泡问题
+          invoker.attached = performance.now()
           // 首次添加事件，通过invoker.value 来存储真正的事件
           el.addEventListener(name, invoker)
         } else {
