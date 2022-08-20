@@ -1,4 +1,8 @@
 const { effect, ref } = VueReactivity;
+// 文本节点
+const Text = Symbol();
+// 注释节点
+const Comment = Symbol()
 // renderer 渲染器
 function createRenderer(options) {
   // 为了设计多平台通用的渲染器 需要传入
@@ -9,19 +13,22 @@ function createRenderer(options) {
     patchProps
   } = options
   /**
-   * @description: 挂载或者更新
+   * @description: 根据新旧虚拟dom进行挂载或者更新
    * @param {*} n1 oldVnode
    * @param {*} n2 newVnode
    * @param {*} container 容器
    * @return {*}
    */  
   function patch(n1, n2, container) {
+    // 第一次渲染时旧节点肯定是空的
     // 新旧vnode type不同 不能复用 直接卸载旧的
     if (n1 && n1.type !== n2.type) {
       unmount(n1)
       n1 = null
     }
+    // 到这一步旧节点要么是空的 要么是和新节点type相同
     const { type } = n2
+    // 普通dom元素 非组件
     if (typeof type === "string") {
       // 旧vnode不存在，挂载
       if (!n1) {
@@ -30,6 +37,22 @@ function createRenderer(options) {
         // 新节点 旧节点 均存在
         patchElement(n1, n2)
       }
+    // 文本节点  将文本信息当做一个节点
+    } else if (type === Text) {
+      if (!n1) {
+        const el = n2.el = document.createTextNode(n2.children)
+        insert(el, container)
+      } else {
+        const el = n2.el = n1.el 
+        // 新旧同样是文本节点 注意patch上方处理
+        if (n1.children !== n2.children) {
+          // nodeValue https://developer.mozilla.org/zh-CN/docs/Web/API/Node/nodeValue
+          n2.nodeValue = n2.children
+        }
+      }
+    // 注释节点 将注释当成一个节点
+    } else if (type === Comment) {
+      
     } else if (typeof type === "object") {
       // 组件类型 暂未实现
     }
@@ -43,7 +66,8 @@ function createRenderer(options) {
       setElementText(el,  vnode.children)
     } else if (Array.isArray(vnode.children)) {
       vnode.children.forEach(child => {
-        // 处理子vnode
+        // 递归处理子vnode 
+        // 后期会处理组件类型 所以这里调用的是patch
         patch(null, child, el)
       });
     }
