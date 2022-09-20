@@ -47,7 +47,7 @@ function createRenderer(options) {
         // 新旧同样是文本节点 注意patch上方处理
         if (n1.children !== n2.children) {
           // nodeValue https://developer.mozilla.org/zh-CN/docs/Web/API/Node/nodeValue
-          n2.nodeValue = n2.children
+          el.nodeValue = n2.children
         }
       }
     // 注释节点 将注释当成一个节点
