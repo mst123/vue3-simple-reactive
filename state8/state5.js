@@ -26,7 +26,7 @@ function createRenderer(options) {
       unmount(n1)
       n1 = null
     }
-    // 到这一步旧节点要么是空的 要么是和新节点type相同
+    // NOTICE 到这一步旧节点要么是空的 要么是和新节点type相同
     const { type } = n2
     // 普通dom元素 非组件
     if (typeof type === "string") {
@@ -68,6 +68,7 @@ function createRenderer(options) {
       vnode.children.forEach(child => {
         // 递归处理子vnode 
         // 后期会处理组件类型 所以这里调用的是patch
+        // NOTICE 此时的container已经变成新创建的el了
         patch(null, child, el)
       });
     }
@@ -117,9 +118,9 @@ function createRenderer(options) {
       if (Array.isArray(n1.children)) {
         // diff 算法
         // 先用代码模拟 确保代码可用
-        n1.children.forEach(item => unmount(item))
+        n1.children.forEach(item => unmount(item)) 
         n2.children.forEach(item => patch(null, item, container))
-      } else {
+      } else { 
         // 不管旧节点 是空的 还是文本节点 我们只需要清空并挂载即可
         // 清空文本信息
         setElementText(container, "")
@@ -162,6 +163,7 @@ function createRenderer(options) {
   }
 }
 
+  
 const renderer = createRenderer({
   // 创建元素
   createElement(tag) {
