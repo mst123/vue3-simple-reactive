@@ -158,9 +158,9 @@ function createRenderer(options) {
       vnode.children.forEach((c) => unmount(c));
       return;
     }
-    const parent = vnode.el.parent;
+    const parent = vnode.el.parentNodeNode;
     if (parent) {
-      parent.removeChild(el);
+      parent.removeChild(vnode.el);
     }
   }
   // 对外提供 render 方法

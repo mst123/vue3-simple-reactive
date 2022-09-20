@@ -141,9 +141,9 @@ function createRenderer(options) {
   }
   // 卸载函数
   function unmount(vnode) {
-    const parent = vnode.el.parent;
+    const parent = vnode.el.parentNode;
     if (parent) {
-      parent.removeChild(el)
+      parent.removeChild(vnode.el)
     }
   }
   // 对外提供 render 方法
