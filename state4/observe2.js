@@ -5,19 +5,20 @@ let activeEffect = null;
 
 // 注册副作用函数
 function effect(fn) {
-  // 实际的副作用函数 包含清除依赖 赋值activeEffect 执行传入函数 三个功能
+  // 实际的副作用函数 包含清除依赖 赋值activeEffect 执行传入函数(重新收集依赖) 三个功能
   const effectFn = () => {
     cleanup(effectFn)
     activeEffect = effectFn;
     fn()
   }
-  // 初始执行一次
+  // NOTICE 这里只会初始执行一次
   effectFn.deps = [];
   effectFn();
 }
 // 清除依赖集合中的副作用函数
 function cleanup(effect) {
   effect.deps.forEach(item => {
+    // item 是与key值相关的副作用函数集合set
     item.delete(effect);
   })
   // 重置deps
@@ -33,13 +34,13 @@ function track(target, key) {
   if (!depsMap) {
     bucket.set(target, (depsMap = new Map()));
   }
-  // 副作用函数集合set
   let deps = depsMap.get(key);
   if (!deps) {
     depsMap.set(key, (deps = new Set()));
   }
+  // 与key值相关的副作用函数集合set
   deps.add(activeEffect);
-  // 副作用函数持有依赖集合
+  // 副作用函数持有key对应的副作用集合
   activeEffect.deps.push(deps)
 }
 // 触发函数
